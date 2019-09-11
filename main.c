@@ -48,7 +48,7 @@ void le_dados(char *filename, int b, float rperc){
 
   /*************Leitura dos dados do arquivo e ordenação pelo eixo x ****************/
   for(i = 0; i<N; i++){
-    fscanf (file, "%d %f %f %f %f %f %f %f", &aux[i], &x[i], &y[i], &z[i], &v1[i], &v2[i], &v3[i], &value);
+    fscanf (file, "%d %f %f %f %f %f %f", &aux[i], &x[i], &y[i], &z[i], &v1[i], &v2[i], &v3[i]);
     id[i] = i;
   }
 
