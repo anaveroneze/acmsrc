@@ -1,10 +1,8 @@
 /***************************************************************************
-Programa que realiza o agrupamento de partículas de acordo com o raio de
-percolação fornecido, usando o algoritmo Friends of Friends para um ambiente
-de computação híbrida (GPU+CPU) com OpenACC.
-Ultima atualização:
-Autor: Ana Luisa Veroneze Solórzano
-$pgcc -g fofacc.c -o run -ta=nvidia:nvidia -Minfo
+Program to classify particles from dark matter simulations according to its
+percolation radius using a Friends-of-Friends algorithm for a hybrid computing
+environment (CPU+GPU) using OpenACC.
+Author: Ana Luisa Veroneze Solórzano
 ******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,7 +17,7 @@ float *x, *y, *z, *v1, *v2, *v3, value;
 int N, *id;
 
 //---------------------------------------------------------------------------
-/********************* Cálculo do tempo em usec *****************/
+/********************* Execution time in usec *****************/
 //---------------------------------------------------------------------------
 long getTime(){
   struct timeval time;
@@ -28,25 +26,25 @@ long getTime(){
 }
 
 //---------------------------------------------------------------------------
-/****************** Leitura dos dados e chamada do FoF *********************/
+/****************** Read the input data *********************/
 //---------------------------------------------------------------------------
-void le_dados(char *filename, int b, float rperc){
+void read_data(char *filename, int b, float rperc){
 
   int i, *aux;
 
   FILE  *file = fopen(filename,"rt");
-  fscanf (file, "%d", &N); //Número total de partículas
+  fscanf (file, "%d", &N); //Get total number of particles
 
-  x  = malloc(sizeof(float)*N);  // posição x da partícula;
-  y  = malloc(sizeof(float)*N);  // posição y da partícula;
-  z  = malloc(sizeof(float)*N);  // posição z da partícula
-  v1 = malloc(sizeof(float)*N);  // coordenada x da velocidade
-  v2 = malloc(sizeof(float)*N);  // coordenada y da velocidade
-  v3 = malloc(sizeof(float)*N);  // coordenada z da velocidade
+  //Get the particles information
+  x  = malloc(sizeof(float)*N);  // position x;
+  y  = malloc(sizeof(float)*N);  // position y;
+  z  = malloc(sizeof(float)*N);  // position z;
+  v1 = malloc(sizeof(float)*N);  // velocity coordinate x
+  v2 = malloc(sizeof(float)*N);  // velocity coordinate y
+  v3 = malloc(sizeof(float)*N);  // velocity coordinate z
   id = malloc(sizeof(int)*N);
   aux = malloc(sizeof(int)*N);
 
-  /*************Leitura dos dados do arquivo e ordenação pelo eixo x ****************/
   for(i = 0; i<N; i++){
     fscanf (file, "%d %f %f %f %f %f %f", &aux[i], &x[i], &y[i], &z[i], &v1[i], &v2[i], &v3[i]);
     id[i] = i;
@@ -56,9 +54,9 @@ void le_dados(char *filename, int b, float rperc){
 }
 
 //---------------------------------------------------------------------------
-/**************************** Limpa a memória ******************************/
+/********************** Clean the memory allocated **************************/
 //---------------------------------------------------------------------------
-void limpa_memo(void){
+void clean_memo(void){
   free(x);
   free(y);
   free(z);
@@ -68,16 +66,17 @@ void limpa_memo(void){
 }
 
 //---------------------------------------------------------------------------
-/***************************************************************************/
+/*********************** MAIN FUNCTION HERE ****************************/
 //---------------------------------------------------------------------------
 int main(int argc, char **argv){
+
   float  local_v[100];
   int num_threads;
   char *arg1;
   long start_fof, stop_fof, start_read, stop_read, start_novo, stop_novo;
 
   if(argc != 4 ){
-    puts( "Por favor, entre com o nome do arquivo de dados, raio de percolação e nº de blocos." );
+    puts( "Please, enter with the input file name, the percolation radius and the number of blocks." );
     exit(1);
   }
 
@@ -85,19 +84,19 @@ int main(int argc, char **argv){
   float rperc = atof(argv[2]);
   num_threads = atoi(argv[3]);
 
-  puts ("Iniciando...\n");
+  puts ("Starting...\n");
 
   start_read = getTime();
-  le_dados(arg1, num_threads, rperc);
+  read_data(arg1, num_threads, rperc);
   stop_read = getTime();
-  printf("\nTempo Leitura: %ld\n", (long)(stop_read - start_read));
+  printf("\nReading time: %ld\n", (long)(stop_read - start_read));
 
   start_fof = getTime();
   fof(num_threads, rperc);
   stop_fof = getTime();
-  
-  printf("\nTempo FoF: %ld\n", (long)(stop_fof - start_fof));
+
+  printf("\nFoF time: %ld\n", (long)(stop_fof - start_fof));
   printf("--------------------\n");
-  limpa_memo();
+  clean_memo();
   return 0;
 }
