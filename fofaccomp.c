@@ -47,7 +47,7 @@ int friends_acc(float *x_bloco, float *y_bloco, float *z_bloco, int n, float rpe
 // Vector of groups + Current group id + New Group id + Number of elements +
 // Number of blocks + Particles left over
 //---------------------------------------------------------------------------
-void group(int** igru, int grupoatual, int new group, int elem, int maxblocos, int leftover){
+void group(int** igru, int thisgroup, int newgroup, int elem, int maxblocos, int leftover){
 
   int b, i;
 
@@ -58,14 +58,14 @@ void group(int** igru, int grupoatual, int new group, int elem, int maxblocos, i
   for(b=0; b < maxblocos; b++){
   #pragma omp parallel for
 	for(i = 0; i < elem; i++){
-      if(igru[b][i] == grupoatual){
+      if(igru[b][i] == thisgroup){
         igru[b][i] = newgroup;
       }
     }
   }
 
   for(i = 0; i < leftover; i++){
-    if(igru[b][i] == grupoatual)
+    if(igru[b][i] == thisgroup)
       igru[b][i] = newgroup;
   }
 }
@@ -89,7 +89,9 @@ void fof(int b, float rperc){
   qsort(id, N, sizeof(float), compare);
 
   resto = N%b;
+  printf("Left over: %d\n", resto);
   max = b;
+  printf("Max: %d\n", max);
   elem = N/max;
 
   /*The division between the total number of particles and the number of blocks may not
@@ -282,3 +284,4 @@ void fof(int b, float rperc){
   free(aux);
   free(igru);
 }
+
